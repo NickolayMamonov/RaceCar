@@ -1,0 +1,41 @@
+using Microsoft.EntityFrameworkCore;
+using RaceCar.Application.Services;
+using RaceCar.Infrastructure.Data;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+builder.Services.AddDbContext<RaceContext>(options =>
+{
+    options.UseNpgsql("Host=localhost;Port=5432;Database=Race;Username=postgres;Password=root",
+        b => b.MigrationsAssembly("Race"));
+});
+builder.Services.AddScoped<IRaceService, RaceService>();
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+app.MapGet("/", () => "Hello World!");
+
+// app.MapPost("api/addbooking", async (CreateDto createBookingDto,IBookingService bookingService) =>
+// {
+//     var newBooking = await bookingService.AddBooking(createBookingDto.ArrivalDate, createBookingDto.DepartureDate, createBookingDto.NumberOfGuests);
+//     return Results.Created($"api/addbooking/{newBooking.Id}", newBooking);
+// });
+//
+// app.MapPost("api/getbookingById", async (Guid bookingId, IBookingService bookingService) =>
+// {
+//     var booking = await bookingService.GetBookingById(bookingId);
+//
+//     // return Results.Created($"api/getbookingbyid/{booking.BookingId}", booking);
+// });
+
+app.Run();

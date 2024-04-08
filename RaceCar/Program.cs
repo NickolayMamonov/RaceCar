@@ -25,17 +25,6 @@ if (app.Environment.IsDevelopment())
 
 app.MapGet("/", () => "Hello World!");
 
-// app.MapPost("api/addbooking", async (CreateDto createBookingDto,IBookingService bookingService) =>
-// {
-//     var newBooking = await bookingService.AddBooking(createBookingDto.ArrivalDate, createBookingDto.DepartureDate, createBookingDto.NumberOfGuests);
-//     return Results.Created($"api/addbooking/{newBooking.Id}", newBooking);
-// });
-//
-// app.MapPost("api/getbookingById", async (Guid bookingId, IBookingService bookingService) =>
-// {
-//     var booking = await bookingService.GetBookingById(bookingId);
-//
-//     // return Results.Created($"api/getbookingbyid/{booking.BookingId}", booking);
-// });
+
 
 app.Run();

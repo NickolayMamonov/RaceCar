@@ -14,9 +14,21 @@ public class RaceContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        modelBuilder.Entity<Race>()
-            .HasMany(r => r.Drivers)
-            .WithOne()
-            .HasForeignKey(d => d.RaceId);
+        modelBuilder.Entity<Race>(race =>
+        {
+            race.ToTable("Races"); // Указываем имя таблицы
+            race.HasKey(r => r.Id); // Указываем первичный ключ
+            race.HasMany(r => r.DriverIds); // Отношение "один ко многим" с водителями
+        });
+
+        modelBuilder.Entity<Driver>(driver =>
+        {
+            driver.ToTable("Drivers"); // Указываем имя таблицы
+            driver.HasKey(d => d.Id); // Указываем первичный ключ
+            driver.Property(d => d.Name).IsRequired(); // Устанавливаем ограничения для свойства Name
+            driver.Property(d => d.CarType).IsRequired(); // Устанавливаем ограничения для свойства CarType
+            driver.Property(d => d.HorsePower).IsRequired(); // Устанавливаем ограничения для свойства HorsePower
+            driver.HasOne(d => d.RaceId); // Отношение "один к одному" с гонкой
+        });
     }
 }

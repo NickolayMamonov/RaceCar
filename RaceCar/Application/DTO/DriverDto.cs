@@ -1,9 +1,11 @@
-﻿namespace RaceCar.Application.DTO;
+﻿using RaceCar.Domain.ValueObjects;
+
+namespace RaceCar.Application.DTO;
 
 public class DriverDto
 {
     public Guid DriverId { get; set; }
-    public string Name { get; set; }
-    public string CarType { get; set; }
-    public int HorsePower { get; set; }
+    public Name Name { get; set; }
+    public CarType CarType { get; set; }
+    public HorsePower HorsePower { get; set; }
 }

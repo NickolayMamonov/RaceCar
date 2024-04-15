@@ -5,21 +5,20 @@ namespace RaceCar.Domain.Aggregates;
 
 public class Driver: Aggregate<DriverId>
 {
-    public string Name { get; private set; }
-    public string CarType { get; private set; }
-    public int HorsePower { get; private set; }
-    public Guid? RaceId { get; private set; }
+    public Name Name { get; private set; }
+    public CarType CarType { get; private set; }
+    public HorsePower HorsePower { get; private set; }
+    public RaceId RaceId { get; private set; }
     
-    private Driver(){}
-
-    public Driver(DriverId id,string name, string carType, int horsePower )
+    public Driver(DriverId id,Name name, CarType carType, HorsePower horsePower)
     {
         Id = id;
         Name = name;
         CarType = carType;
         HorsePower = horsePower;
+       
     }
-    public void SetRaceId(Guid raceId)
+    public void SetRaceId(RaceId raceId)
     {
         RaceId = raceId;
     }

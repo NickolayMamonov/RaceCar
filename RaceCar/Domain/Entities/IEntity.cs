@@ -8,7 +8,6 @@ public interface IAggregate : IEntity
 {
 }
 
-// Entity
 
 public interface IEntity<T> : IEntity
 {

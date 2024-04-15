@@ -1,7 +1,9 @@
-﻿namespace RaceCar.Application.DTO;
+﻿using RaceCar.Domain.ValueObjects;
+
+namespace RaceCar.Application.DTO;
 
 public class RaceDto
 {
-    public string Label { get; set; }
+    public Label Label { get; set; }
     private List<DriverDto> Drivers { get; set; }
 }

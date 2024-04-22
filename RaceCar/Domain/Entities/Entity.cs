@@ -1,4 +1,6 @@
-﻿namespace RaceCar.Domain.Entities;
+﻿using RaceCar.Domain.Common;
+
+namespace RaceCar.Domain.Entities;
 
 public class Entity<T>
 {
@@ -36,5 +38,24 @@ public class Entity<T>
 }
 public abstract class Aggregate<TId> : Entity<TId>, IAggregate<TId>
 {
-    
+    private readonly List<IDomainEvent> _domainEvents = new();
+
+    public void AddDomainEvent(IDomainEvent domainEvent)
+    {
+        _domainEvents.Add(domainEvent);
+    }
+
+    public IReadOnlyList<IDomainEvent> GetDomainEvents()
+    {
+        return _domainEvents.AsReadOnly();
+    }
+
+    public IEvent[] ClearDomainEvents()
+    {
+        IEvent[] dequeuedEvents = _domainEvents.ToArray();
+
+        _domainEvents.Clear();
+
+        return dequeuedEvents;
+    }
 }

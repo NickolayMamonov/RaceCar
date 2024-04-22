@@ -15,7 +15,7 @@ public class DriverService: IDriverService
 
     public async Task<Driver> AddDriverAsync(Name name, CarType carType, HorsePower horsePower)
     {
-        var driver = new Driver(DriverId.Of(Guid.NewGuid()), name, carType, horsePower);
+        var driver = Driver.Create(DriverId.Of(Guid.NewGuid()), name, carType, horsePower);
         await _context.Drivers.AddAsync(driver);
         await _context.SaveChangesAsync();
         return driver;

@@ -1,10 +1,12 @@
 {
   "version": 2,
-  "dgSpecHash": "XQyeTg118zPMNop8G2v9wf1NmgNWFsQNN8yMDbdHk8v4HnE34CX77cNTq/hsgujaiclQ7EONaa2TCL8FD4Ho9g==",
+  "dgSpecHash": "9u6PfmDg71TGl7Erannqv3sEWB025TxiyW6p++EHyley3NYRAjNDoUwA3kcLStiU5CIDYWitVTynRzlEAWrtyw==",
   "success": true,
   "projectFilePath": "C:\\Users\\Whysoezzy\\RiderProjects\\RaceCar\\RaceCar\\RaceCar.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Whysoezzy\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
+    "C:\\Users\\Whysoezzy\\.nuget\\packages\\mediatr\\12.2.0\\mediatr.12.2.0.nupkg.sha512",
+    "C:\\Users\\Whysoezzy\\.nuget\\packages\\mediatr.contracts\\2.0.1\\mediatr.contracts.2.0.1.nupkg.sha512",
     "C:\\Users\\Whysoezzy\\.nuget\\packages\\microsoft.aspnetcore.openapi\\8.0.1\\microsoft.aspnetcore.openapi.8.0.1.nupkg.sha512",
     "C:\\Users\\Whysoezzy\\.nuget\\packages\\microsoft.bcl.asyncinterfaces\\7.0.0\\microsoft.bcl.asyncinterfaces.7.0.0.nupkg.sha512",
     "C:\\Users\\Whysoezzy\\.nuget\\packages\\microsoft.codeanalysis.analyzers\\3.3.4\\microsoft.codeanalysis.analyzers.3.3.4.nupkg.sha512",

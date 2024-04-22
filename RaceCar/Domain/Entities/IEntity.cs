@@ -1,11 +1,17 @@
-﻿namespace RaceCar.Domain.Entities;
+﻿using RaceCar.Domain.Common;
+
+namespace RaceCar.Domain.Entities;
 
 public interface IAggregate<T> : IAggregate, IEntity<T>
 {
+    
 }
 
-public interface IAggregate : IEntity
+public interface IAggregate
 {
+    void AddDomainEvent(IDomainEvent domainEvent);
+    IReadOnlyList<IDomainEvent> GetDomainEvents();
+    IEvent[] ClearDomainEvents();
 }
 
 

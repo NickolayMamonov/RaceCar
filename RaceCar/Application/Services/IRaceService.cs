@@ -7,5 +7,6 @@ namespace RaceCar.Application.Services;
 public interface IRaceService
 {
     Task<RaceDto> CreateRaceAsync(Label raceName);
+    Task<List<RaceDto>> GetAllRacesAsync();
     Task<Race> SimulateRace(RaceId raceId);
 }

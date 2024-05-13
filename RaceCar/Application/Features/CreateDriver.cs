@@ -1,4 +1,6 @@
 ﻿using MediatR;
+using RaceCar.Application.DTO;
+using RaceCar.Application.Services;
 using RaceCar.Domain.Aggregates;
 using RaceCar.Domain.Exceptions;
 using RaceCar.Domain.ValueObjects;
@@ -8,7 +10,7 @@ namespace RaceCar.Features;
 
 public class CreateDriver
 {
-    public record CreateDriverCommand(string Name, string CarType, int HorsePower) : IRequest<CreateDriverResult>
+    public record CreateDriverCommand(Name name, CarType carType, HorsePower horsePower) : IRequest<CreateDriverResult>, IRequest<DriverDto>
     {
         public Guid Id { get; init; } = Guid.NewGuid();
     }
@@ -17,25 +19,17 @@ public class CreateDriver
 
     public class CreateDriverCommandHandler : IRequestHandler<CreateDriverCommand, CreateDriverResult>
     {
-        private readonly RaceContext _context;
+        private readonly IDriverService _driverService;
 
-        public CreateDriverCommandHandler(RaceContext context)
+        public CreateDriverCommandHandler(IDriverService driverService)
         {
-            _context = context;
+            _driverService = driverService;
         }
 
         public async Task<CreateDriverResult> Handle(CreateDriverCommand request, CancellationToken cancellationToken)
         {
-            if (_context.Drivers.Any(e => e.Name == request.Name))
-            {
-                throw new DriverAlreadyExistsException($"Driver with name {request.Name} already exists.");
-            }
-
-            var driverEntity = _context.Drivers.Add(Driver.Create(DriverId.Of(request.Id), Name.Of(request.Name),
-                CarType.Of(request.CarType), HorsePower.Of(request.HorsePower)));
-            await _context.SaveChangesAsync();
-
-            return new CreateDriverResult(driverEntity.Entity.Id.Value);
+            var driverDto = await _driverService.AddDriverAsync(request.name, request.carType, request.horsePower);
+            return new CreateDriverResult(driverDto.Id);
         }
     }
 }

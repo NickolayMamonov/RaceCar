@@ -6,6 +6,7 @@ using RaceCar.Application.Services;
 using RaceCar.Domain.Aggregates;
 using RaceCar.Domain.Aggregates.Events;
 using RaceCar.Domain.ValueObjects;
+using RaceCar.Features;
 using RaceCar.Handlers;
 using RaceCar.Infrastructure.Data;
 
@@ -25,7 +26,9 @@ builder.Services.AddScoped<IRaceService, RaceService>();
 
 builder.Services.AddScoped<INotificationHandler<RaceCreatedDomainEvent>, RaceCreatedEventHandler>();
 builder.Services.AddScoped<INotificationHandler<RaceDriversFilledDomainEvent>, RaceDriversFilledEventHandler>();
+builder.Services.AddScoped<INotificationHandler<RaceEndedDomainEvent>, RaceEndedEventHandler>();
 builder.Services.AddScoped<INotificationHandler<DriverCreatedDomainEvent>, DriverCreatedDomainEventHandler>();
+
 // Add MediatR
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
 
@@ -40,12 +43,12 @@ if (app.Environment.IsDevelopment())
 
 app.MapGet("/", () => "Hello World!");
 
-app.MapPost("/api/driver", async (IDriverService driverService, Name name, CarType carType, HorsePower horsePower) =>
+app.MapPost("/api/driver", async (IMediator mediator, Name name, CarType carType, HorsePower horsePower) =>
 {
     try
     {
-        var driver = await driverService.AddDriverAsync(name, carType, horsePower);
-        return Results.Created($"/api/driver/{driver.Id}", driver);
+        var result = await mediator.Send(new CreateDriver.CreateDriverCommand(name, carType, horsePower));
+        return Results.Created($"/api/driver/", result);
     }
     catch (Exception ex)
     {
@@ -53,11 +56,25 @@ app.MapPost("/api/driver", async (IDriverService driverService, Name name, CarTy
     }
 });
 
-app.MapPost("/api/race", async (IRaceService raceService, Label raceName) =>
+app.MapGet("/api/drivers", async (IMediator mediator) =>
 {
     try
     {
-        var race = await raceService.CreateRaceAsync(raceName);
+        var drivers = await mediator.Send(new GetAllDrivers.GetAllDriversQuery());
+        return Results.Ok(drivers);
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+});
+
+app.MapPost("/api/race", async (IMediator mediator, Label raceName) =>
+{
+    try
+    {
+        var command = new CreateRace.CreateRaceCommand(raceName);
+        var race = await mediator.Send(command);
         return Results.Created($"/api/race/{race.Id}", race);
     }
     catch (Exception ex)
@@ -65,18 +82,33 @@ app.MapPost("/api/race", async (IRaceService raceService, Label raceName) =>
         return Results.BadRequest(ex.Message);
     }
 });
-app.MapPost("/api/race/simulate", async (IRaceService raceService, RaceId raceId) =>
+app.MapGet("/api/races", async (IMediator mediator) =>
 {
     try
     {
-        var winner = await raceService.SimulateRace(raceId);
-        return Results.Ok(winner);
+        var query = new GetAllRaces.GetAllRacesQuery();
+        var result = await mediator.Send(query);
+        return Results.Ok(result.Races);
     }
     catch (Exception ex)
     {
         return Results.BadRequest(ex.Message);
     }
 });
+app.MapPost("/api/race/simulate", async (IMediator mediator, RaceId raceId) =>
+{
+    try
+    {
+        var command = new SimulateRace.SimulateRaceCommand(raceId);
+        var race = await mediator.Send(command);
+        return Results.Ok(race);
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+});
+
 
 app.Run();
 

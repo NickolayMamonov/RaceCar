@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using RaceCar.Application.DTO;
+using RaceCar.Application.Services;
 using RaceCar.Domain.ValueObjects;
 using RaceCar.Infrastructure.Data;
 
@@ -8,29 +9,23 @@ namespace RaceCar.Features;
 
 public class GetAllDrivers
 {
-    public record GetAllDriversQuery() : IRequest<GetAllDriversResult>;
+    public record GetAllDriversQuery() : IRequest<GetAllDriversResult>, IRequest<List<DriverDto>>;
 
     public record GetAllDriversResult(List<DriverDto> Drivers);
 
 
-    public class GetAllDriversQueryHandler : IRequestHandler<GetAllDriversQuery, GetAllDriversResult>
+    public class GetAllDriversQueryHandler : IRequestHandler<GetAllDriversQuery, List<DriverDto>>
     {
-        private readonly RaceContext _context;
+        private readonly IDriverService _driverService;
 
-        public GetAllDriversQueryHandler(RaceContext context)
+        public GetAllDriversQueryHandler(IDriverService driverService)
         {
-            _context = context;
+            _driverService = driverService;
         }
 
-        public async Task<GetAllDriversResult> Handle(GetAllDriversQuery request, CancellationToken cancellationToken)
+        public async Task<List<DriverDto>> Handle(GetAllDriversQuery request, CancellationToken cancellationToken)
         {
-            var drivers = await _context.Drivers.ToListAsync(cancellationToken);
-
-            return new GetAllDrivers.GetAllDriversResult(
-                drivers.Select(d =>
-                        new DriverDto(d.Id, d.Name.Value, d.CarType.Value, d.HorsePower.Value, d.RaceId ?? Guid.Empty))
-                    .ToList()
-            );
+            return await _driverService.GetAllDriversAsync();
         }
     }
 }

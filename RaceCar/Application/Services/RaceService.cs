@@ -24,9 +24,8 @@ public class RaceService : IRaceService
 
     public async Task<RaceDto> CreateRaceAsync(Label raceName)
     {
-        // var drivers = await _context.Drivers.ToListAsync();
-        var getAllDriversResult = await _mediator.Send(new GetAllDrivers.GetAllDriversQuery());
-        var drivers = getAllDriversResult.Drivers;
+        var drivers = await _context.Drivers.ToListAsync();
+        // var drivers = getAllDriversResult.Drivers.Select(d => Driver.Create(DriverId.Of(d.Id), Name.Of(d.Name), CarType.Of(d.CarType), HorsePower.Of(d.HorsePower))).ToList();
         var selectedDrivers = SelectDrivers(drivers);
 
         if (selectedDrivers.Count > 8)
@@ -54,17 +53,19 @@ public class RaceService : IRaceService
         await _mediator.Publish(new RaceCreatedDomainEvent(race.Id, race.Label,
             selectedDrivers.Select(d => DriverId.Of(d.Id)).ToList(), DateTime.UtcNow));
 
-        return new RaceDto(
-            race.Id.Value,
-            race.Label,
-            selectedDrivers.Select(d => DriverId.Of(d.Id)).ToList()
-        );
+        return new RaceDto(race.Id, race.Label, race.DriverIds.ToList());
     }
 
-
-    private List<DriverDto> SelectDrivers(List<DriverDto> drivers)
+    public async Task<List<RaceDto>> GetAllRacesAsync()
     {
-        var selectedDrivers = new List<DriverDto>();
+        return await _context.Races
+            .Select(r => new RaceDto(r.Id, r.Label, r.DriverIds.ToList()))
+            .ToListAsync();
+    }
+
+    private List<Driver> SelectDrivers(List<Driver> drivers)
+    {
+        var selectedDrivers = new List<Driver>();
 
         foreach (var driver in drivers)
         {
@@ -106,7 +107,9 @@ public class RaceService : IRaceService
         race.SetWinner(winner);
 
         await _context.SaveChangesAsync();
-
+        await _mediator.Publish(new RaceEndedDomainEvent(race.Id, DateTime.UtcNow, winner.Id));
         return race;
     }
 }
+//await _mediator.Publish(new RaceCreatedDomainEvent(race.Id, race.Label,
+// selectedDrivers.Select(d => DriverId.Of(d.Id)).ToList(), DateTime.UtcNow));

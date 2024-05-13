@@ -15,51 +15,56 @@ public class RaceService : IRaceService
     private readonly IDriverService _driverService;
     private readonly IMediator _mediator;
 
-    public RaceService(RaceContext context, IDriverService driverService,IMediator mediator)
+    public RaceService(RaceContext context, IDriverService driverService, IMediator mediator)
     {
         _context = context;
         _driverService = driverService;
         _mediator = mediator;
     }
-  
+
     public async Task<RaceDto> CreateRaceAsync(Label raceName)
     {
         // var drivers = await _context.Drivers.ToListAsync();
         var getAllDriversResult = await _mediator.Send(new GetAllDrivers.GetAllDriversQuery());
-        var drivers = getAllDriversResult.Drivers.Select(d => Driver.Create(DriverId.Of(d.Id), Name.Of(d.Name), CarType.Of(d.CarType), HorsePower.Of(d.HorsePower))).ToList();
+        var drivers = getAllDriversResult.Drivers;
         var selectedDrivers = SelectDrivers(drivers);
 
         if (selectedDrivers.Count > 8)
         {
-            await _mediator.Publish(new RaceDriversFilledDomainEvent(selectedDrivers.Select(d=>d.Id).ToList(), DateTime.UtcNow));
-
+            await _mediator.Publish(
+                new RaceDriversFilledDomainEvent(selectedDrivers.Select(d => DriverId.Of(d.Id)).ToList(),
+                    DateTime.UtcNow));
         }
         else
         {
             throw new Exception("There are not enough suitable drivers available.");
         }
 
-        var race = Race.Create(RaceId.Of(Guid.NewGuid()), raceName, selectedDrivers.Select(d => d.Id).ToList());
+        var race = Race.Create(RaceId.Of(Guid.NewGuid()), raceName,
+            selectedDrivers.Select(d => DriverId.Of(d.Id)).ToList());
 
         foreach (var driver in selectedDrivers)
         {
-            driver.SetRaceId(race.Id);
+            var driverEntity = await _context.Drivers.FindAsync(driver.Id);
+            driverEntity.AssignToRace(race.Id.Value);
         }
+
         await _context.Races.AddAsync(race);
         await _context.SaveChangesAsync();
-        await _mediator.Publish(new RaceCreatedDomainEvent(race.Id, race.Label,selectedDrivers.Select(d => d.Id).ToList(), DateTime.UtcNow));
-        
+        await _mediator.Publish(new RaceCreatedDomainEvent(race.Id, race.Label,
+            selectedDrivers.Select(d => DriverId.Of(d.Id)).ToList(), DateTime.UtcNow));
+
         return new RaceDto(
-            race.Id.Value, 
+            race.Id.Value,
             race.Label,
-            selectedDrivers.Select(d => d.Id).ToList()
+            selectedDrivers.Select(d => DriverId.Of(d.Id)).ToList()
         );
     }
 
 
-    private List<Driver> SelectDrivers(List<Driver> drivers)
+    private List<DriverDto> SelectDrivers(List<DriverDto> drivers)
     {
-        var selectedDrivers = new List<Driver>();
+        var selectedDrivers = new List<DriverDto>();
 
         foreach (var driver in drivers)
         {
@@ -83,7 +88,7 @@ public class RaceService : IRaceService
 
         return selectedDrivers;
     }
-    
+
     public async Task<Race> SimulateRace(RaceId raceId)
     {
         var race = await _context.Races.FindAsync(raceId);

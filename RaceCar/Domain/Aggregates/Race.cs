@@ -4,11 +4,12 @@ using RaceCar.Domain.ValueObjects;
 
 namespace RaceCar.Domain.Aggregates;
 
-public class Race: Aggregate<RaceId>
+public class Race : Aggregate<RaceId>
 {
     public Label Label { get; private set; }
     public Driver Winner { get; private set; } = default!;
     public virtual ICollection<DriverId> DriverIds { get; set; }
+
     public static Race Create(RaceId id, Label label, List<DriverId> drivers)
     {
         if (drivers.Count < 2)
@@ -24,6 +25,7 @@ public class Race: Aggregate<RaceId>
         race.SetDrivers(drivers);
         return race;
     }
+
     public void SetDrivers(List<DriverId> drivers)
     {
         DriverIds = drivers;
@@ -32,6 +34,5 @@ public class Race: Aggregate<RaceId>
     public void SetWinner(Driver winner)
     {
         Winner = winner;
-    } 
-    
+    }
 }

@@ -4,7 +4,7 @@ using RaceCar.Infrastructure.Data;
 
 namespace RaceCar.Application.Services;
 
-public class DriverService: IDriverService
+public class DriverService : IDriverService
 {
     private readonly RaceContext _context;
 
@@ -20,5 +20,4 @@ public class DriverService: IDriverService
         await _context.SaveChangesAsync();
         return driver;
     }
-
 }

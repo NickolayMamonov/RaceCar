@@ -3,6 +3,7 @@ using RaceCar.Application.DTO;
 using RaceCar.Domain.Aggregates;
 
 namespace RaceCar.Infrastructure.Data;
+
 public class RaceContext : DbContext
 {
     public DbSet<Race> Races { get; set; }
@@ -30,7 +31,7 @@ public class RaceContext : DbContext
             driver.Property(d => d.Name).IsRequired(); // Устанавливаем ограничения для свойства Name
             driver.Property(d => d.CarType).IsRequired(); // Устанавливаем ограничения для свойства CarType
             driver.Property(d => d.HorsePower).IsRequired(); // Устанавливаем ограничения для свойства HorsePower
-            driver.HasOne(d => d.RaceId); // Отношение "один к одному" с гонкой
+            driver.Property(d => d.RaceId).IsRequired(false); // Устанавливаем ограничения для свойства RaceId
         });
     }
 }

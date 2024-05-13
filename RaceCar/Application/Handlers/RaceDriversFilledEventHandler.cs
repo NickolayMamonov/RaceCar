@@ -7,7 +7,8 @@ public class RaceDriversFilledEventHandler : INotificationHandler<RaceDriversFil
 {
     public Task Handle(RaceDriversFilledDomainEvent notification, CancellationToken cancellationToken)
     {
-        Console.WriteLine($"Race filled with drivers at {notification.FilledAt}: DriverIds={string.Join(", ", notification.Drivers)}");
+        Console.WriteLine(
+            $"Race filled with drivers at {notification.FilledAt}: DriverIds={string.Join(", ", notification.Drivers)}");
         return Task.CompletedTask;
     }
 }

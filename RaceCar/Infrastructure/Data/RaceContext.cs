@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using RaceCar.Application.DTO;
 using RaceCar.Domain.Aggregates;
 
 namespace RaceCar.Infrastructure.Data;
@@ -14,10 +15,11 @@ public class RaceContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        modelBuilder.Entity<Race>(race =>
+        modelBuilder.Entity<RaceDto>(race =>
         {
             race.ToTable("Races"); // Указываем имя таблицы
             race.HasKey(r => r.Id); // Указываем первичный ключ
+            race.Property(d => d.Label).IsRequired(); // Устанавливаем ограничения для свойства Label
             race.HasMany(r => r.DriverIds); // Отношение "один ко многим" с водителями
         });
 

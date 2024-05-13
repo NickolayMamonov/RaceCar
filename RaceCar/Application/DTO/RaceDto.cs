@@ -2,8 +2,4 @@
 
 namespace RaceCar.Application.DTO;
 
-public class RaceDto
-{
-    public Label Label { get; set; }
-    private List<DriverDto> Drivers { get; set; }
-}
+public record RaceDto(Guid Id, string? Label, List<DriverId> DriverIds);

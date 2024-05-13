@@ -1,8 +1,12 @@
+using System.Reflection;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using RaceCar.Application.DTO;
 using RaceCar.Application.Services;
 using RaceCar.Domain.Aggregates;
+using RaceCar.Domain.Aggregates.Events;
 using RaceCar.Domain.ValueObjects;
+using RaceCar.Handlers;
 using RaceCar.Infrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,6 +23,12 @@ builder.Services.AddDbContext<RaceContext>(options =>
 builder.Services.AddScoped<IDriverService, DriverService>();
 builder.Services.AddScoped<IRaceService, RaceService>();
 
+builder.Services.AddScoped<INotificationHandler<RaceCreatedDomainEvent>, RaceCreatedEventHandler>();
+builder.Services.AddScoped<INotificationHandler<RaceDriversFilledDomainEvent>, RaceDriversFilledEventHandler>();
+builder.Services.AddScoped<INotificationHandler<DriverCreatedDomainEvent>, DriverCreatedDomainEventHandler>();
+// Add MediatR
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -29,16 +39,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapGet("/", () => "Hello World!");
-// Define your endpoints
-// app.MapPost("/race", async (IRaceService raceService, CreateRaceRequest request) =>
-// {
-//     var drivers = request.Drivers.Select(driver =>
-//         new Driver(DriverId.Of(Guid.NewGuid()), driver.Name, driver.CarType, driver.HorsePower)).ToList();
-//
-//     //  var race = await raceService.CreateRace(request.RaceName, drivers);
-//
-//     //  return Results.Created($"/race/{race.Id}", race);
-// });
+
 app.MapPost("/api/driver", async (IDriverService driverService, Name name, CarType carType, HorsePower horsePower) =>
 {
     try
@@ -56,7 +57,7 @@ app.MapPost("/api/race", async (IRaceService raceService, Label raceName) =>
 {
     try
     {
-        var race = await raceService.CreateRace(raceName);
+        var race = await raceService.CreateRaceAsync(raceName);
         return Results.Created($"/api/race/{race.Id}", race);
     }
     catch (Exception ex)
@@ -79,4 +80,4 @@ app.MapPost("/api/race/simulate", async (IRaceService raceService, RaceId raceId
 
 app.Run();
 
-public record CreateRaceRequest(string RaceName, List<DriverDto> Drivers);
+

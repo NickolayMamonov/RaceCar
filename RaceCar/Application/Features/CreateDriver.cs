@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using RaceCar.Domain.Aggregates;
+using RaceCar.Domain.Exceptions;
 using RaceCar.Domain.ValueObjects;
 using RaceCar.Infrastructure.Data;
 
@@ -23,14 +24,14 @@ public class CreateDriver
         }
         public async Task<CreateDriverResult> Handle(CreateDriverCommand request, CancellationToken cancellationToken)
         {
-            var driver = _context.Drivers.FirstOrDefault(e => e.Name == request.Name);
-            if (driver is not null)
+            if (_context.Drivers.Any(e => e.Name == request.Name))
             {
-                throw new ArgumentNullException();
+                throw new DriverAlreadyExistsException($"Driver with name {request.Name} already exists.");
             }
-            var driverEntity = _context.Drivers.Add(Driver.Create(DriverId.Of(Guid.NewGuid()), Name.Of(request.Name),
+            var driverEntity = _context.Drivers.Add(Driver.Create(DriverId.Of(request.Id), Name.Of(request.Name),
                 CarType.Of(request.CarType), HorsePower.Of(request.HorsePower)));
             await _context.SaveChangesAsync();
+
             return new CreateDriverResult(driverEntity.Entity.Id.Value);
         }
     }

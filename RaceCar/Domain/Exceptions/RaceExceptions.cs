@@ -1,0 +1,2 @@
+﻿namespace RaceCar.Domain.Exceptions;
+

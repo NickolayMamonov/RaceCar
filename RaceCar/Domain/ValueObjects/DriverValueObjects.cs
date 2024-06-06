@@ -1,4 +1,6 @@
-﻿namespace RaceCar.Domain.ValueObjects;
+﻿using RaceCar.Domain.Exceptions;
+
+namespace RaceCar.Domain.ValueObjects;
 
 public class Name
 {
@@ -65,18 +67,38 @@ public class DriverId
 {
     public Guid Value { get; }
 
+    private DriverId()
+    {
+        
+    }
     private DriverId(Guid value)
     {
         Value = value;
     }
     public static DriverId Of(Guid value)
     {
-        if (value==Guid.Empty) throw new ArgumentNullException(nameof(value));
+        if (value == Guid.Empty)
+        {
+            throw new ArgumentNullException(nameof(value));
+        }
         return new DriverId(value);
     }
 
     public static implicit operator Guid(DriverId driverId)
     {
         return driverId.Value;
+    }
+    public static DriverId Of(string value)
+    {
+        if (Guid.TryParse(value, out var val) && val != Guid.Empty)
+        {
+            return new DriverId(val); 
+        }
+        
+        throw new InvalidDriverIdException(val);
+    }
+    public override string ToString()
+    {
+        return Value.ToString();
     }
 }

@@ -1,30 +1,26 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using RaceCar.Application.DTO;
-using RaceCar.Application.Services;
 using RaceCar.Infrastructure.Data;
 
-namespace RaceCar.Features;
+namespace RaceCar.Application.Features;
 
-public class GetAllRaces
+public record GetAllRacesQuery() : IRequest<IList<RaceDto>>;
+
+public class GetAllRacesQueryHandler : IRequestHandler<GetAllRacesQuery, IList<RaceDto>>
 {
-    public record GetAllRacesQuery() : IRequest<GetAllRacesResult>;
+    private readonly RaceContext _db;
 
-    public record GetAllRacesResult(List<RaceDto> Races);
-
-    public class GetAllRacesQueryHandler : IRequestHandler<GetAllRacesQuery, GetAllRacesResult>
+    public GetAllRacesQueryHandler(RaceContext db)
     {
-        private readonly IRaceService _raceService;
+        _db = db;
+    }
 
-        public GetAllRacesQueryHandler(IRaceService raceService)
-        {
-            _raceService = raceService;
-        }
-
-        public async Task<GetAllRacesResult> Handle(GetAllRacesQuery request, CancellationToken cancellationToken)
-        {
-            var races = await _raceService.GetAllRacesAsync();
-            return new GetAllRacesResult(races);
-        }
+    public async Task<IList<RaceDto>> Handle(GetAllRacesQuery request, CancellationToken cancellationToken)
+    {
+        return await _db.Races
+            .AsNoTrackingWithIdentityResolution()
+            .Select(d => new RaceDto(d.Id.Value.ToString(), d.Label.Value, d.TypeOfCar.Value, d.DriverIds.ToList()))
+            .ToListAsync();
     }
 }

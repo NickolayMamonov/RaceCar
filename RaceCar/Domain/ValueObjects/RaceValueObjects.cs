@@ -1,4 +1,6 @@
-﻿namespace RaceCar.Domain.ValueObjects;
+﻿using RaceCar.Domain.Aggregates;
+
+namespace RaceCar.Domain.ValueObjects;
 
 public class Label  
 {
@@ -19,6 +21,27 @@ public class Label
         return name.Value;
     }
 }
+
+public class TypeOfCar
+{
+    public string Value { get;}
+
+    private TypeOfCar(string value)
+    {
+        Value = value;
+    }
+
+    public static TypeOfCar Of(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) throw new ArgumentNullException(nameof(value));
+        return new TypeOfCar(value);
+    }
+
+    public static implicit operator string(TypeOfCar carType)
+    {
+        return carType.Value;
+    }
+}
 public class RaceId
 {
     public Guid Value { get; }
@@ -36,5 +59,29 @@ public class RaceId
     public static implicit operator Guid(RaceId raceId)
     {
         return raceId.Value;
+    }
+}
+
+
+public class DriverIdList : ValueObject
+{
+    private readonly List<Driver> _driverIds;
+
+    public DriverIdList(List<Driver> driverIds)
+    {
+        _driverIds = driverIds ?? throw new ArgumentNullException(nameof(driverIds));
+    }
+
+    public IReadOnlyList<Driver> Value => _driverIds.AsReadOnly();
+
+    // Add this property
+    public List<Driver> DriverIds => _driverIds;
+
+    protected override IEnumerable<object> GetEqualityComponents()
+    {
+        foreach (var driverId in _driverIds)
+        {
+            yield return driverId;
+        }
     }
 }

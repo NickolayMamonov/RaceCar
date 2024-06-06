@@ -1,4 +1,5 @@
-﻿using RaceCar.Domain.Entities;
+﻿using RaceCar.Application.DTO;
+using RaceCar.Domain.Entities;
 using RaceCar.Domain.ValueObjects;
 
 
@@ -7,10 +8,11 @@ namespace RaceCar.Domain.Aggregates;
 public class Race : Aggregate<RaceId>
 {
     public Label Label { get; private set; }
-    public Driver Winner { get; private set; } = default!;
-    public virtual ICollection<DriverId> DriverIds { get; set; }
+    public TypeOfCar TypeOfCar { get; private set; }
+    public Driver? Winner { get; private set; }
+    public virtual ICollection<Driver> DriverIds { get; set; }
 
-    public static Race Create(RaceId id, Label label, List<DriverId> drivers)
+    public static Race Create(RaceId id, Label label, TypeOfCar typeOfCar, List<Driver> drivers)
     {
         if (drivers.Count < 2)
         {
@@ -20,13 +22,14 @@ public class Race : Aggregate<RaceId>
         var race = new Race
         {
             Id = id,
-            Label = label
+            Label = label,
+            TypeOfCar = typeOfCar
         };
         race.SetDrivers(drivers);
         return race;
     }
 
-    public void SetDrivers(List<DriverId> drivers)
+    public void SetDrivers(List<Driver> drivers)
     {
         DriverIds = drivers;
     }

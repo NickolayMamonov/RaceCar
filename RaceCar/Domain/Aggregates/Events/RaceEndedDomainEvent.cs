@@ -2,4 +2,4 @@
 
 namespace RaceCar.Domain.Aggregates.Events;
 
-public record RaceEndedDomainEvent(Guid Id, DateTime EndedAt, Guid WinnerId) : IDomainEvent;
+public record RaceEndedDomainEvent(Guid Id,string TypeOfCar, DateTime EndedAt, Guid WinnerId) : IDomainEvent;

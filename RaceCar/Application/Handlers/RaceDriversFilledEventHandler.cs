@@ -1,14 +1,22 @@
-﻿using MediatR;
-using RaceCar.Domain.Aggregates.Events;
+﻿namespace RaceCar.Application.Handlers;
 
-namespace RaceCar.Handlers;
-
-public class RaceDriversFilledEventHandler : INotificationHandler<RaceDriversFilledDomainEvent>
-{
-    public Task Handle(RaceDriversFilledDomainEvent notification, CancellationToken cancellationToken)
-    {
-        Console.WriteLine(
-            $"Race filled with drivers at {notification.FilledAt}: DriverIds={string.Join(", ", notification.Drivers)}");
-        return Task.CompletedTask;
-    }
-}
+// public class RaceDriversFilledEventHandler : INotificationHandler<RaceDriversFilledDomainEvent>
+// {
+//     private readonly KafkaProducerService _kafkaProducerService;
+//
+//     public RaceDriversFilledEventHandler(KafkaProducerService kafkaProducerService)
+//     {
+//         _kafkaProducerService = kafkaProducerService;
+//     }
+//
+//     public async Task Handle(RaceDriversFilledDomainEvent notification, CancellationToken cancellationToken)
+//     {
+//         var driverIds = notification.Drivers.Select(driver => driver.Value).ToList();
+//         var message = new RaceDriversFilledMessage(driverIds, notification.FilledAt);
+//         var serializedMessage = JsonSerializer.Serialize(message);
+//
+//         await _kafkaProducerService.ProduceAsync("race-created", serializedMessage);
+//
+//         Console.WriteLine($"Drivers filled for race at {notification.FilledAt}");
+//     }
+// }

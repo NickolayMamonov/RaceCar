@@ -1,13 +1,14 @@
 using System.Reflection;
 using MediatR;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RaceCar.Application.DTO;
+using RaceCar.Application.EventBus;
+using RaceCar.Application.Features;
 using RaceCar.Application.Services;
 using RaceCar.Domain.Aggregates;
 using RaceCar.Domain.Aggregates.Events;
 using RaceCar.Domain.ValueObjects;
-using RaceCar.Features;
-using RaceCar.Handlers;
 using RaceCar.Infrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,16 +19,19 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<RaceContext>(options =>
 {
-    options.UseNpgsql("Host=localhost;Port=5432;Database=Race;Username=postgres;Password=root",
-        b => b.MigrationsAssembly("Race"));
+    options.UseNpgsql("Host=localhost;Port=5432;Database=racecar;Username=postgres;Password=postgres");
 });
-builder.Services.AddScoped<IDriverService, DriverService>();
-builder.Services.AddScoped<IRaceService, RaceService>();
 
-builder.Services.AddScoped<INotificationHandler<RaceCreatedDomainEvent>, RaceCreatedEventHandler>();
-builder.Services.AddScoped<INotificationHandler<RaceDriversFilledDomainEvent>, RaceDriversFilledEventHandler>();
-builder.Services.AddScoped<INotificationHandler<RaceEndedDomainEvent>, RaceEndedEventHandler>();
-builder.Services.AddScoped<INotificationHandler<DriverCreatedDomainEvent>, DriverCreatedDomainEventHandler>();
+
+// builder.Services.AddScoped<IDriverService, DriverService>();
+// builder.Services.AddScoped<IRaceService, RaceService>();
+
+builder.Services.AddSingleton<KafkaProducerService>();
+
+// builder.Services.AddScoped<INotificationHandler<RaceCreatedDomainEvent>, RaceCreatedEventHandler>();
+// builder.Services.AddScoped<INotificationHandler<RaceDriversFilledDomainEvent>, RaceDriversFilledEventHandler>();
+// builder.Services.AddScoped<INotificationHandler<RaceEndedDomainEvent>, RaceEndedEventHandler>();
+// builder.Services.AddScoped<INotificationHandler<DriverCreatedDomainEvent>, DriverCreatedDomainEventHandler>();
 
 // Add MediatR
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
@@ -41,72 +45,84 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.MapGet("/", () => "Hello World!");
+SeedDataDrivers(app);
+SeedDataRaces(app);
 
-app.MapPost("/api/driver", async (IMediator mediator, Name name, CarType carType, HorsePower horsePower) =>
+void SeedDataRaces(IHost app)
 {
-    try
+    var scopedFactory = app.Services.GetService<IServiceScopeFactory>();
+
+    using (var scope = scopedFactory.CreateScope() )
     {
-        var result = await mediator.Send(new CreateDriver.CreateDriverCommand(name, carType, horsePower));
-        return Results.Created($"/api/driver/", result);
+        using (var db = scope.ServiceProvider.GetRequiredService<RaceContext>())
+        {
+            db.Database.EnsureCreated();
+            if (!db.Races.Any())
+            {
+                var drivers = db.Drivers.Take(2).ToList(); // Get the first two drivers from the database
+                if(drivers.Count < 2)
+                {
+                    throw new Exception("At least two drivers are required to create a race.");
+                }
+                db.Races.Add(Race.Create(RaceId.Of(Guid.NewGuid()), Label.Of("Formula"),TypeOfCar.Of("Sedan"), drivers));
+                db.SaveChanges();
+            }
+        }
     }
-    catch (Exception ex)
+}
+
+// Seed data
+void SeedDataDrivers(IHost app)
+{
+    var scopedFactory = app.Services.GetService<IServiceScopeFactory>();
+
+    using (var scope = scopedFactory.CreateScope())
     {
-        return Results.BadRequest(ex.Message);
+        using (var db = scope.ServiceProvider.GetRequiredService<RaceContext>())
+        {
+            db.Database.EnsureCreated();
+            if (db.Drivers.Count() < 2)
+            {
+                db.Drivers.Add(Driver.Create(DriverId.Of(Guid.NewGuid()), Name.Of("Nico Rossberg"), CarType.Of("Sedan"), HorsePower.Of(300)));
+                db.Drivers.Add(Driver.Create(DriverId.Of(Guid.NewGuid()), Name.Of("Bob Rossberg"), CarType.Of("Sedan"), HorsePower.Of(320)));
+
+                db.SaveChanges();
+            }
+        }
     }
+}
+
+
+
+app.MapPost("api/drivers", async (DriverInputModel model, IMediator mediator) =>
+{
+    var command = new CreateDriver.CreateDriverCommand(model.Name, model.CarType, model.HorsePower);
+    var response = await mediator.Send(command);
+    return Results.Created($"/api/drivers/{response.Id}", response);
 });
 
-app.MapGet("/api/drivers", async (IMediator mediator) =>
+app.MapGet("api/drivers", async (RaceContext db,IMediator mediator) =>
 {
-    try
-    {
-        var drivers = await mediator.Send(new GetAllDrivers.GetAllDriversQuery());
-        return Results.Ok(drivers);
-    }
-    catch (Exception ex)
-    {
-        return Results.BadRequest(ex.Message);
-    }
+    return await mediator.Send(new GetAllDriversQuery());
 });
 
-app.MapPost("/api/race", async (IMediator mediator, Label raceName) =>
+app.MapPost("api/races", async (RaceInputModel model, IMediator mediator,RaceContext db) =>
 {
-    try
-    {
-        var command = new CreateRace.CreateRaceCommand(raceName);
-        var race = await mediator.Send(command);
-        return Results.Created($"/api/race/{race.Id}", race);
-    }
-    catch (Exception ex)
-    {
-        return Results.BadRequest(ex.Message);
-    }
+    var command = new CreateRace.CreateRaceCommand(model.Label, model.TypeOfCar);
+    var response = await mediator.Send(command);
+    return Results.Created($"/api/races/{response.Id}", response);
 });
-app.MapGet("/api/races", async (IMediator mediator) =>
+app.MapGet("api/races", async (RaceContext db,IMediator mediator) =>
 {
-    try
-    {
-        var query = new GetAllRaces.GetAllRacesQuery();
-        var result = await mediator.Send(query);
-        return Results.Ok(result.Races);
-    }
-    catch (Exception ex)
-    {
-        return Results.BadRequest(ex.Message);
-    }
+    return await mediator.Send(new GetAllRacesQuery());
 });
-app.MapPost("/api/race/simulate", async (IMediator mediator, RaceId raceId) =>
+
+
+
+app.MapPost("api/races/simulate", async (SimulateRace.SimulateRaceCommand command, IMediator mediator) =>
 {
-    try
-    {
-        var command = new SimulateRace.SimulateRaceCommand(raceId);
-        var race = await mediator.Send(command);
-        return Results.Ok(race);
-    }
-    catch (Exception ex)
-    {
-        return Results.BadRequest(ex.Message);
-    }
+    var race = await mediator.Send(command);
+    return Results.Ok(race);
 });
 
 

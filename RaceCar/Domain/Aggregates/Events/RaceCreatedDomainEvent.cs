@@ -3,4 +3,4 @@ using RaceCar.Domain.ValueObjects;
 
 namespace RaceCar.Domain.Aggregates.Events;
 
-public record RaceCreatedDomainEvent(RaceId Id, string Label,string TypeOfCar, List<DriverId> Drivers, DateTime CreatedAt) : IDomainEvent;
+public record RaceCreatedDomainEvent(RaceId Id, string Label,string TypeOfCar, List<DriverId> Drivers) : IDomainEvent;

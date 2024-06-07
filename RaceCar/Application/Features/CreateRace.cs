@@ -8,59 +8,55 @@ using RaceCar.Infrastructure.Data;
 
 namespace RaceCar.Application.Features;
 
-public class CreateRace
+public record CreateRaceCommand(string Label, string TypeOfCar) : IRequest<CreateRaceResult>
 {
+    public Guid Id { get; init; } = Guid.NewGuid();
+}
 
-    public record CreateRaceCommand(string Label,string TypeOfCar) : IRequest<CreateRaceResult>
+public record CreateRaceResult(Guid Id);
+
+public class CreateRaceCommandHandler : IRequestHandler<CreateRaceCommand, CreateRaceResult>
+{
+    private readonly RaceContext _db;
+    private readonly KafkaProducerService _kafkaProducerService;
+
+    public CreateRaceCommandHandler(RaceContext db, KafkaProducerService kafkaProducerService)
     {
-        public Guid Id { get; init; } = Guid.NewGuid();
+        _db = db;
+        _kafkaProducerService = kafkaProducerService;
     }
-    public record CreateRaceResult(Guid Id);
 
-    public class CreateRaceCommandHandler : IRequestHandler<CreateRaceCommand, CreateRaceResult>
+
+    public async Task<CreateRaceResult> Handle(CreateRaceCommand request, CancellationToken cancellationToken)
     {
-        private readonly RaceContext _db;
-        private readonly KafkaProducerService _kafkaProducerService;
+        var race = await _db.Races.FirstOrDefaultAsync(x => x.Label.Value == request.Label,cancellationToken);
 
-        public CreateRaceCommandHandler(RaceContext db,KafkaProducerService kafkaProducerService)
+        if (race is not null)
         {
-            _db = db;
-            _kafkaProducerService= kafkaProducerService;
+            throw new RaceAlreadyExistsException("Race already exists");
         }
+
+        var driversWithSameCarType = await _db.Drivers
+            .Where(d => d.CarType.Value == request.TypeOfCar && d.HorsePower.Value != null)
+            .ToListAsync(cancellationToken);
+
+        driversWithSameCarType.Sort((d1, d2) => d1.HorsePower.Value.CompareTo(d2.HorsePower.Value));
+
+        var selectedDrivers = new List<Driver>();
         
+
+        for (int i = 0; i < driversWithSameCarType.Count - 1; i++)
+        {
+            selectedDrivers.Add(driversWithSameCarType[i]);
+            selectedDrivers.Add(driversWithSameCarType[i + 1]);
+            break;
+        }
+
+        var raceEntity = Race.Create(RaceId.Of(Guid.NewGuid()), Label.Of(request.Label),TypeOfCar.Of(request.TypeOfCar), selectedDrivers);
+        _db.Races.Add(raceEntity);
         
-        public async Task<CreateRaceResult> Handle(CreateRaceCommand request, CancellationToken cancellationToken)
-        {
-            var race = await _db.Races.SingleOrDefaultAsync(x => x.Label.Value == request.Label);
+        await _db.SaveChangesAsync(cancellationToken);
 
-            if (race is not null)
-            {
-                throw new RaceAlreadyExistsException("Race already exists");
-            }
-
-            var drivers = await SelectDrivers(request.TypeOfCar);
-
-            var raceEntity = _db.Races.Add(Race.Create(RaceId.Of(Guid.NewGuid()), Label.Of(request.Label),TypeOfCar.Of(request.TypeOfCar), drivers)).Entity;
-            await _db.SaveChangesAsync();
-
-            return new CreateRaceResult(raceEntity.Id.Value);
-        }
-
-        private async Task<List<Driver>> SelectDrivers(string carType)
-        {
-            var allDrivers = await _db.Drivers.Where(d => d.CarType.Value == carType).ToListAsync();
-
-            if (!allDrivers.Any())
-            {
-                throw new Exception($"No drivers with car type {carType} available in the database.");
-            }
-
-            var random = new Random();
-            var selectedDrivers = allDrivers
-                .OrderBy(d => random.Next())
-                .ToList();
-
-            return selectedDrivers;
-        }
+        return new CreateRaceResult(raceEntity.Id.Value);
     }
 }

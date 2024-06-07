@@ -13,22 +13,20 @@ public class RaceContext : DbContext
     public DbSet<Driver> Drivers { get; set; }
 
     private IMediator _mediator;
-    
 
-    public RaceContext(DbContextOptions<RaceContext> options,IMediator mediator) : base(options)
+
+    public RaceContext(DbContextOptions<RaceContext> options, IMediator mediator) : base(options)
     {
         _mediator = mediator;
     }
 
     public RaceContext()
     {
-        
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        modelBuilder.Entity<Driver>().HasKey(p => p.Id);
 
         modelBuilder.Entity<Driver>().ToTable(nameof(Driver));
 
@@ -57,7 +55,6 @@ public class RaceContext : DbContext
                 .HasMaxLength(10000);
         });
 
-        modelBuilder.Entity<Race>().HasKey(p => p.Id);
 
         modelBuilder.Entity<Race>().ToTable(nameof(Race));
 
@@ -77,36 +74,6 @@ public class RaceContext : DbContext
                 .IsRequired()
                 .HasMaxLength(10);
         });
-        modelBuilder.Entity<Race>()
-            .HasMany(r => r.DriverIds)
-            .WithMany()
-            .UsingEntity<Dictionary<string, object>>(
-                "RaceDriver",
-                j => j
-                    .HasOne<Driver>()
-                    .WithMany()
-                    .HasForeignKey("DriverId")
-                    .HasConstraintName("FK_RaceDriver_Drivers")
-                    .OnDelete(DeleteBehavior.Cascade),
-                j => j
-                    .HasOne<Race>()
-                    .WithMany()
-                    .HasForeignKey("RaceId")
-                    .HasConstraintName("FK_RaceDriver_Races")
-                    .OnDelete(DeleteBehavior.Cascade));
-        
-        // modelBuilder.Entity<Race>().OwnsMany(p => p.DriverIds, a =>
-        // {
-        //     a.WithOwner().HasForeignKey("RaceId");
-        //     a.Property<Guid>("Id");
-        //     a.HasKey("Id");
-        //     a.Property(x => x.Value)
-        //         .HasColumnName("DriverId")
-        //         .HasConversion(
-        //             v => v.ToString(),
-        //             v => DriverId.Of(Guid.Parse(v)))
-        //         .IsRequired();
-        // });
     }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
@@ -118,17 +85,17 @@ public class RaceContext : DbContext
 
         return result;
     }
-    
+
     private async Task DispatchEvents(CancellationToken cancellationToken)
     {
         var domainEntities = ChangeTracker
             .Entries<IAggregate>()
             .Where(x => x.Entity.GetDomainEvents() != null && x.Entity.GetDomainEvents().Any());
-        
+
         var domainEvents = domainEntities
             .SelectMany(x => x.Entity.GetDomainEvents())
             .ToList();
-        
+
         domainEntities.ToList()
             .ForEach(entity => entity.Entity.ClearDomainEvents());
 
@@ -136,8 +103,7 @@ public class RaceContext : DbContext
             await _mediator.Publish(domainEvent, cancellationToken);
     }
 
-    
-    
+
     // protected override void OnModelCreating(ModelBuilder modelBuilder)
     // {
     //     base.OnModelCreating(modelBuilder);

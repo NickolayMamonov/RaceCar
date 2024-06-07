@@ -1,6 +1,9 @@
-﻿using RaceCar.Application.DTO;
+﻿using Microsoft.EntityFrameworkCore;
+using RaceCar.Application.DTO;
+using RaceCar.Domain.Aggregates.Events;
 using RaceCar.Domain.Entities;
 using RaceCar.Domain.ValueObjects;
+using RaceCar.Infrastructure.Data;
 
 
 namespace RaceCar.Domain.Aggregates;
@@ -9,32 +12,34 @@ public class Race : Aggregate<RaceId>
 {
     public Label Label { get; private set; }
     public TypeOfCar TypeOfCar { get; private set; }
-    public Driver? Winner { get; private set; }
-    public virtual ICollection<Driver> DriverIds { get; set; }
+    public string? Winner { get; private set; }
+    public List<Driver> Drivers { get;private set; }
 
+    public Race()
+    {
+        Drivers = new List<Driver>();
+    }
     public static Race Create(RaceId id, Label label, TypeOfCar typeOfCar, List<Driver> drivers)
     {
-        if (drivers.Count < 2)
-        {
-            throw new ArgumentException("At least two drivers are required for a race.");
-        }
-
-        var race = new Race
+        var race = new Race()
         {
             Id = id,
             Label = label,
-            TypeOfCar = typeOfCar
+            TypeOfCar = typeOfCar,
+            Drivers = drivers
         };
-        race.SetDrivers(drivers);
+        var @event = new RaceCreatedDomainEvent(
+            race.Id,
+            race.Label,
+            race.TypeOfCar,
+            race.Drivers.Select(d => d.Id).ToList());
+        race.AddDomainEvent(@event);
+        
         return race;
     }
 
-    public void SetDrivers(List<Driver> drivers)
-    {
-        DriverIds = drivers;
-    }
-
-    public void SetWinner(Driver winner)
+    
+    public void SetWinner(string winner)
     {
         Winner = winner;
     }

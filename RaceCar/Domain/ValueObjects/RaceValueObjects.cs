@@ -42,6 +42,26 @@ public class TypeOfCar
         return carType.Value;
     }
 }
+
+public class Winner
+{
+    public string Value { get;}
+
+    private Winner(string value)
+    {
+        Value = value;
+    }
+    public static Winner Of(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) throw new ArgumentNullException(nameof(value));
+        return new Winner(value);
+    }
+    public static implicit operator string(Winner carType)
+    {
+        return carType.Value;
+    }
+}
+
 public class RaceId
 {
     public Guid Value { get; }

@@ -20,8 +20,8 @@ public class GetAllDriversQueryHandler : IRequestHandler<GetAllDriversQuery, ILi
 
     public async Task<IList<DriverDto>> Handle(GetAllDriversQuery request, CancellationToken cancellationToken)
     {
-        var drivers = await _db.Drivers.AsNoTrackingWithIdentityResolution().ToListAsync();
+        // var drivers = await _db.Drivers.AsNoTrackingWithIdentityResolution().ToListAsync();
         return await _db.Drivers.Select(d => new DriverDto(d.Id.Value.ToString(), d.Name.Value, d.CarType.Value,
-            d.HorsePower.Value, d.RaceId ?? Guid.Empty)).ToListAsync();
+            d.HorsePower.Value)).ToListAsync(cancellationToken);
     }
 }

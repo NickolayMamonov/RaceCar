@@ -6,16 +6,10 @@ namespace RaceCar.Domain.Aggregates;
 
 public class Driver: Aggregate<DriverId>
 {
-    public Name Name { get; set; }
-    public CarType CarType { get; set; }
-    public HorsePower HorsePower { get; set; }
-    public Guid? RaceId { get; set; }
-   
-    // public void AssignToRace(Guid raceId)
-    // {
-    //     RaceId = raceId;
-    // }
-    //
+    public Name Name { get; private set; }
+    public CarType CarType { get; private set; }
+    public HorsePower HorsePower { get; private set; }
+
     public static Driver Create(DriverId id,Name name, CarType carType, HorsePower horsePower)
     {
         var driver = new Driver
@@ -35,9 +29,5 @@ public class Driver: Aggregate<DriverId>
         driver.AddDomainEvent(@event);
         return driver;
     }
-    // public void SetRaceId(RaceId? raceId)
-    // {
-    //     RaceId = raceId;
-    // }
 
 }

@@ -5,37 +5,45 @@ using RaceCar.Infrastructure.Data;
 
 namespace RaceCar.Application.Features;
 
-public class SimulateRace
+public record SimulateRaceCommand(Guid RaceId) : IRequest<Race>;
+
+public class SimulateRaceCommandHandler : IRequestHandler<SimulateRaceCommand, Race>
 {
-    public record SimulateRaceCommand(string Label) : IRequest<Race>;
+    private readonly RaceContext _db;
 
-    public class SimulateRaceCommandHandler : IRequestHandler<SimulateRaceCommand, Race>
+    public SimulateRaceCommandHandler(RaceContext db)
     {
-        private readonly RaceContext _db;
+        _db = db;
+    }
 
-        public SimulateRaceCommandHandler(RaceContext db)
+    public async Task<Race> Handle(SimulateRaceCommand request, CancellationToken cancellationToken)
+    {
+        // Исправленная строка: получение гонки по RaceId
+        var test = await _db.Races.FirstAsync(r => r.Id == request.RaceId, cancellationToken);
+        var race = await _db.Races
+            .Include(r => r.Drivers)
+            .FirstOrDefaultAsync(r => r.Id == request.RaceId, cancellationToken);
+        if (race == null)
         {
-            _db = db;
+            throw new Exception("Race not found");
         }
-       
 
-        public async Task<Race> Handle(SimulateRaceCommand request, CancellationToken cancellationToken)
+        var drivers = race.Drivers.ToList();
+
+        if (drivers.Count == 0)
         {
-            var race = await _db.Races.Include(r => r.DriverIds).FirstOrDefaultAsync(r => r.Label.Value == request.Label);            if (race == null)
-            {
-                throw new Exception("Race not found");
-            }
-            var drivers = race.DriverIds.ToList();
-            
-            Random random = new Random();
-            var winner = drivers[random.Next(drivers.Count)];
-
-            race.SetWinner(winner);
-
-            _db.Races.Update(race);
-            await _db.SaveChangesAsync();
-
-            return race;
+            throw new Exception("No drivers in the race");
         }
+
+        Random random = new Random();
+        var winner = drivers[random.Next(drivers.Count)];
+
+        // Установите победителя
+        race.SetWinner(winner.Name.Value);
+
+        _db.Races.Update(race);
+        await _db.SaveChangesAsync(cancellationToken);
+
+        return race;
     }
 }

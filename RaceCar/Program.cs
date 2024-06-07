@@ -96,7 +96,7 @@ void SeedDataDrivers(IHost app)
 
 app.MapPost("api/drivers", async (DriverInputModel model, IMediator mediator) =>
 {
-    var command = new CreateDriver.CreateDriverCommand(model.Name, model.CarType, model.HorsePower);
+    var command = new CreateDriverCommand(model.Name, model.CarType, model.HorsePower);
     var response = await mediator.Send(command);
     return Results.Created($"/api/drivers/{response.Id}", response);
 });
@@ -108,7 +108,7 @@ app.MapGet("api/drivers", async (RaceContext db,IMediator mediator) =>
 
 app.MapPost("api/races", async (RaceInputModel model, IMediator mediator,RaceContext db) =>
 {
-    var command = new CreateRace.CreateRaceCommand(model.Label, model.TypeOfCar);
+    var command = new CreateRaceCommand(model.Label, model.TypeOfCar);
     var response = await mediator.Send(command);
     return Results.Created($"/api/races/{response.Id}", response);
 });
@@ -119,8 +119,9 @@ app.MapGet("api/races", async (RaceContext db,IMediator mediator) =>
 
 
 
-app.MapPost("api/races/simulate", async (SimulateRace.SimulateRaceCommand command, IMediator mediator) =>
+app.MapPost("api/races/simulate", async (SimulateRaceInputModel model, IMediator mediator) =>
 {
+    var command = new SimulateRaceCommand(model.id);
     var race = await mediator.Send(command);
     return Results.Ok(race);
 });

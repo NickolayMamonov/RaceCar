@@ -8,44 +8,38 @@ using RaceCar.Infrastructure.Data;
 
 namespace RaceCar.Application.Features;
 
-public class CreateDriver
+public record CreateDriverCommand(string name, string carType, int horsePower) : IRequest<CreateDriverResult>
 {
-    public record CreateDriverCommand(string name, string carType, int horsePower) : IRequest<CreateDriverResult>
+    public Guid Id { get; init; } = Guid.NewGuid();
+}
+
+public record CreateDriverResult(Guid Id);
+
+public class CreateDriverCommandHandler : IRequestHandler<CreateDriverCommand, CreateDriverResult>
+{
+    private readonly RaceContext _db;
+    private readonly KafkaProducerService _kafkaProducerService;
+
+
+    public CreateDriverCommandHandler(RaceContext db, KafkaProducerService kafkaProducerService)
     {
-        public Guid Id { get; init; } = Guid.NewGuid();
+        _db = db;
+        _kafkaProducerService = kafkaProducerService;
     }
 
-    public record CreateDriverResult(Guid Id);
-
-    public class CreateDriverCommandHandler : IRequestHandler<CreateDriverCommand, CreateDriverResult>
+    public async Task<CreateDriverResult> Handle(CreateDriverCommand request, CancellationToken cancellationToken)
     {
-        private readonly RaceContext _db;
-        private readonly KafkaProducerService _kafkaProducerService;
-        
+        var driver = await _db.Drivers.FirstOrDefaultAsync(x => x.Name.Value == request.name,cancellationToken);
 
-        public CreateDriverCommandHandler(RaceContext db,KafkaProducerService kafkaProducerService)
+        if (driver is not null)
         {
-            _db = db;
-            _kafkaProducerService = kafkaProducerService;
+            throw new DriverAlreadyExistsException("Driver already exists");
         }
-        public async Task<CreateDriverResult> Handle(CreateDriverCommand request, CancellationToken cancellationToken)
-        {
-            var driver = await _db.Drivers.SingleOrDefaultAsync(x => x.Name.Value == request.name);
 
-            if (driver is not null)
-            {
-                throw new DriverAlreadyExistsException("Driver already exists");
-            }
+        var driverEntity = _db.Drivers.Add(Driver.Create(DriverId.Of(Guid.NewGuid()), Name.Of(request.name),
+            CarType.Of(request.carType), HorsePower.Of(request.horsePower))).Entity;
+        await _db.SaveChangesAsync(cancellationToken);
 
-            var driverEntity = _db.Drivers.Add(Driver.Create(DriverId.Of(Guid.NewGuid()), Name.Of(request.name),CarType.Of(request.carType),HorsePower.Of(request.horsePower))).Entity;
-            await _db.SaveChangesAsync();
-
-            return new CreateDriverResult(driverEntity.Id.Value);
-        }
-        // public async Task<CreateDriverResult> Handle(CreateDriverCommand request, CancellationToken cancellationToken)
-        // {
-        //     var driverDto = await _driverService.AddDriverAsync(request.name, request.carType, request.horsePower);
-        //     return new CreateDriverResult(driverDto.Id);
-        // }
+        return new CreateDriverResult(driverEntity.Id.Value);
     }
 }

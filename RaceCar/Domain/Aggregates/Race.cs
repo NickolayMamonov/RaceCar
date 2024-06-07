@@ -32,6 +32,7 @@ public class Race : Aggregate<RaceId>
             race.Id,
             race.Label,
             race.TypeOfCar,
+            race.Winner,
             race.Drivers.Select(d => d.Id).ToList());
         race.AddDomainEvent(@event);
         

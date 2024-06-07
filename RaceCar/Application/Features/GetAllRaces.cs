@@ -19,7 +19,7 @@ public class GetAllRacesQueryHandler : IRequestHandler<GetAllRacesQuery, IList<R
     public async Task<IList<RaceDto>> Handle(GetAllRacesQuery request, CancellationToken cancellationToken)
     {
         return await _db.Races
-            .Select(d => new RaceDto(d.Id.Value.ToString(), d.Label.Value, d.TypeOfCar.Value))
+            .Select(d => new RaceDto(d.Id.Value.ToString(), d.Label.Value, d.TypeOfCar.Value,d.Winner))
             .ToListAsync(cancellationToken);
     }
 }

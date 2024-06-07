@@ -43,7 +43,6 @@ public class CreateRaceCommandHandler : IRequestHandler<CreateRaceCommand, Creat
         driversWithSameCarType.Sort((d1, d2) => d1.HorsePower.Value.CompareTo(d2.HorsePower.Value));
 
         var selectedDrivers = new List<Driver>();
-        
 
         for (int i = 0; i < driversWithSameCarType.Count - 1; i++)
         {
@@ -53,8 +52,23 @@ public class CreateRaceCommandHandler : IRequestHandler<CreateRaceCommand, Creat
         }
 
         var raceEntity = Race.Create(RaceId.Of(Guid.NewGuid()), Label.Of(request.Label),TypeOfCar.Of(request.TypeOfCar), selectedDrivers);
+
+        // Save the race first before adding drivers
         _db.Races.Add(raceEntity);
-        
+        await _db.SaveChangesAsync(cancellationToken);
+
+        if (selectedDrivers.Count == 0)
+        {
+            throw new Exception("No drivers in the race");
+        }
+
+        Random random = new Random();
+        var winner = selectedDrivers[random.Next(selectedDrivers.Count)];
+
+        // Set the winner
+        raceEntity.SetWinner(winner.Name.Value);
+
+        _db.Races.Update(raceEntity);
         await _db.SaveChangesAsync(cancellationToken);
 
         return new CreateRaceResult(raceEntity.Id.Value);

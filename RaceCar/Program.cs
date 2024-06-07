@@ -46,30 +46,30 @@ if (app.Environment.IsDevelopment())
 }
 
 SeedDataDrivers(app);
-SeedDataRaces(app);
+// SeedDataRaces(app);
 
-void SeedDataRaces(IHost app)
-{
-    var scopedFactory = app.Services.GetService<IServiceScopeFactory>();
-
-    using (var scope = scopedFactory.CreateScope() )
-    {
-        using (var db = scope.ServiceProvider.GetRequiredService<RaceContext>())
-        {
-            db.Database.EnsureCreated();
-            if (!db.Races.Any())
-            {
-                var drivers = db.Drivers.Take(2).ToList(); // Get the first two drivers from the database
-                if(drivers.Count < 2)
-                {
-                    throw new Exception("At least two drivers are required to create a race.");
-                }
-                db.Races.Add(Race.Create(RaceId.Of(Guid.NewGuid()), Label.Of("Formula"),TypeOfCar.Of("Sedan"), drivers));
-                db.SaveChanges();
-            }
-        }
-    }
-}
+// void SeedDataRaces(IHost app)
+// {
+//     var scopedFactory = app.Services.GetService<IServiceScopeFactory>();
+//
+//     using (var scope = scopedFactory.CreateScope() )
+//     {
+//         using (var db = scope.ServiceProvider.GetRequiredService<RaceContext>())
+//         {
+//             db.Database.EnsureCreated();
+//             if (!db.Races.Any())
+//             {
+//                 var drivers = db.Drivers.Take(2).ToList(); // Get the first two drivers from the database
+//                 if(drivers.Count < 2)
+//                 {
+//                     throw new Exception("At least two drivers are required to create a race.");
+//                 }
+//                 db.Races.Add(Race.Create(RaceId.Of(Guid.NewGuid()), Label.Of("Formula"),TypeOfCar.Of("Sedan"), drivers));
+//                 db.SaveChanges();
+//             }
+//         }
+//     }
+// }
 
 // Seed data
 void SeedDataDrivers(IHost app)
@@ -119,12 +119,12 @@ app.MapGet("api/races", async (RaceContext db,IMediator mediator) =>
 
 
 
-app.MapPost("api/races/simulate", async (SimulateRaceInputModel model, IMediator mediator) =>
-{
-    var command = new SimulateRaceCommand(model.id);
-    var race = await mediator.Send(command);
-    return Results.Ok(race);
-});
+// app.MapPost("api/races/simulate", async (SimulateRaceInputModel model, IMediator mediator) =>
+// {
+//     var command = new SimulateRaceCommand(model.id);
+//     var race = await mediator.Send(command);
+//     return Results.Ok(race);
+// });
 
 
 app.Run();

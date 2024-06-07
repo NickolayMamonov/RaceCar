@@ -1,6 +1,4 @@
 ﻿using MediatR;
-using Messages;
-using Newtonsoft.Json;
 using RaceCar.Application.EventBus;
 using RaceCar.Domain.Aggregates.Events;
 
@@ -17,12 +15,9 @@ public class RaceCreatedEventHandler : INotificationHandler<RaceCreatedDomainEve
 
     public async Task Handle(RaceCreatedDomainEvent notification, CancellationToken cancellationToken)
     {
-        
-        var message = new RaceCreatedMessage(notification.Id, notification.Label,notification.TypeOfCar,new DateTimeOffset(DateTime.Now.ToUniversalTime()).ToUnixTimeSeconds().ToString());
-        var serializedMessage = JsonConvert.SerializeObject(message);
-
-        await _kafkaProducerService.ProduceAsync("RaceCreated", serializedMessage);
-
-        // Console.WriteLine($"Race created at {notification.CreatedAt}: RaceId={notification.Id}");
+        // var message = new RaceCreatedMessage(notification.Id, notification.Label,notification.TypeOfCar,notification.Winner,new DateTimeOffset(DateTime.Now.ToUniversalTime()).ToUnixTimeSeconds().ToString());
+        // var serializedMessage = JsonConvert.SerializeObject(message);
+        //
+        // await _kafkaProducerService.ProduceAsync("RaceCreated", serializedMessage);
     }
 }

@@ -27,3 +27,4 @@ public class KafkaProducerService
         await _producer.ProduceAsync(topic, kafkamessage);
     }
 }
+

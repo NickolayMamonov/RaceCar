@@ -101,10 +101,7 @@ app.MapPost("api/drivers", async (DriverInputModel model, IMediator mediator) =>
     return Results.Created($"/api/drivers/{response.Id}", response);
 });
 
-app.MapGet("api/drivers", async (RaceContext db,IMediator mediator) =>
-{
-    return await mediator.Send(new GetAllDriversQuery());
-});
+app.MapGet("api/drivers", async (RaceContext db,IMediator mediator) => await mediator.Send(new GetAllDriversQuery()));
 
 app.MapPost("api/races", async (RaceInputModel model, IMediator mediator,RaceContext db) =>
 {
@@ -112,10 +109,7 @@ app.MapPost("api/races", async (RaceInputModel model, IMediator mediator,RaceCon
     var response = await mediator.Send(command);
     return Results.Created($"/api/races/{response.Id}", response);
 });
-app.MapGet("api/races", async (RaceContext db,IMediator mediator) =>
-{
-    return await mediator.Send(new GetAllRacesQuery());
-});
+app.MapGet("api/races", async (RaceContext db,IMediator mediator) => await mediator.Send(new GetAllRacesQuery()));
 
 
 

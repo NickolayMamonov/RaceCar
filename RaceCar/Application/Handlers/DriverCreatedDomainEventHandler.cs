@@ -23,8 +23,6 @@ public class DriverCreatedDomainEventHandler : INotificationHandler<DriverCreate
         );
         var json = JsonConvert.SerializeObject(message);
         await _kafkaProducerService.ProduceAsync("DriverCreated", json);
-        // Console.WriteLine(
-        //     $"New driver created {DateTime.Now}: ID={notification.Id}, Name={notification.Name}, CarType={notification.CarType}, HorsePower={notification.HorsePower}");
-        // return Task.CompletedTask;
+        
     }
 }

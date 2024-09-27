@@ -13,6 +13,13 @@ services:
     ports:
       - "5432:5432"
 
+  consul:
+    image: hashicorp/consul:1.19
+    command: agent -server -ui -node=server-1 -bootstrap-expect=1 --client=0.0.0.0
+    ports:
+      - "8500:8500"
+      - "8600:8600/udp"
+        
   broker:
     image: apache/kafka:latest
     hostname: broker

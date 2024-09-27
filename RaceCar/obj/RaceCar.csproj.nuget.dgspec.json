@@ -119,6 +119,10 @@
               "target": "Package",
               "version": "[2.4.0, )"
             },
+            "Consul": {
+              "target": "Package",
+              "version": "[1.7.14.4, )"
+            },
             "MediatR": {
               "target": "Package",
               "version": "[12.2.0, )"

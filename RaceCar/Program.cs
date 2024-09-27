@@ -1,4 +1,5 @@
 using System.Reflection;
+using Consul;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +10,7 @@ using RaceCar.Application.Services;
 using RaceCar.Domain.Aggregates;
 using RaceCar.Domain.Aggregates.Events;
 using RaceCar.Domain.ValueObjects;
+using RaceCar.Infrastructure;
 using RaceCar.Infrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,6 +19,11 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddSingleton<IConsulClient, ConsulClient>(p => new ConsulClient(consulConfig =>
+{
+    consulConfig.Address = new Uri("http://localhost:8500");
+}));
 builder.Services.AddDbContext<RaceContext>(options =>
 {
     options.UseNpgsql("Host=localhost;Port=5432;Database=racecar;Username=postgres;Password=postgres");
@@ -35,8 +42,10 @@ builder.Services.AddSingleton<KafkaProducerService>();
 
 // Add MediatR
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
-
+builder.Services.Configure<ServiceDiscoveryConfig>(builder.Configuration.GetSection("ServiceDiscoveryConfig"));
 var app = builder.Build();
+
+app.UseConsul();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -46,7 +55,7 @@ if (app.Environment.IsDevelopment())
 }
 
 SeedDataDrivers(app);
- SeedDataRaces(app);
+SeedDataRaces(app);
 
  void SeedDataRaces(IHost app)
  {

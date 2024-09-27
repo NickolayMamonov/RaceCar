@@ -3,3 +3,5 @@ clickhouse-client --query "CREATE TABLE driver_created_queue (Id UUID, Name Stri
 clickhouse-client --query "CREATE TABLE daily ( day Date, total UInt64 ) ENGINE = SummingMergeTree() ORDER BY (day);"
 
 clickhouse-client --query "CREATE MATERIALIZED VIEW consumer TO daily AS SELECT toDate(toDateTime(Timestamp)) AS day, count() as total FROM default.driver_created_queue GROUP BY day;"
+
+

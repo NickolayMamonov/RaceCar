@@ -8,6 +8,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Messages", "Messages\Messag
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gateway", "Gateway\Gateway.csproj", "{0B195E69-915F-4EBE-8175-B68E584206DC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aggregator", "Aggregator\Aggregator.csproj", "{CAA178EA-270E-497B-B9E8-1ED131014400}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +32,9 @@ Global
 		{0B195E69-915F-4EBE-8175-B68E584206DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0B195E69-915F-4EBE-8175-B68E584206DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0B195E69-915F-4EBE-8175-B68E584206DC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CAA178EA-270E-497B-B9E8-1ED131014400}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CAA178EA-270E-497B-B9E8-1ED131014400}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CAA178EA-270E-497B-B9E8-1ED131014400}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CAA178EA-270E-497B-B9E8-1ED131014400}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

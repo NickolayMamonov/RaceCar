@@ -3,19 +3,32 @@
     {
       "UseServiceDiscovery": true,
       "ServiceName": "race",
-      "DownstreamPathTemplate": "/race",
-      "DownstreamScheme": "https",      
-      "UpstreamPathTemplate": "/race/",
-      "UpstreamHttpMethod": [ "Get" ]
+      "DownstreamPathTemplate": "/api/{everything}",
+      "DownstreamScheme": "https",
+      "UpstreamPathTemplate": "/race-service/api/{everything}",
+      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ],
+      "LoadBalancerOptions": {
+        "Type": "RoundRobin"
+      }
+    },
+    {
+      "UseServiceDiscovery": true,
+      "ServiceName": "aggregator",
+      "DownstreamPathTemplate": "/api/{everything}",
+      "DownstreamScheme": "https",
+      "UpstreamPathTemplate": "/aggregator/api/{everything}",
+      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ],
+      "LoadBalancerOptions": {
+        "Type": "RoundRobin"
+      }
     }
   ],
-   "GlobalConfiguration": {
-    "BaseUrl": "https://localhost:7057",
-     "ServiceDiscoveryProvider": {
-       "Host": "localhost",
-       "Port": 8500,
-       "Type": "PollConsul",
-       "PollingInterval": 100
-     }
-   }
+  "GlobalConfiguration": {
+    "BaseUrl": "https://localhost:7066",
+    "ServiceDiscoveryProvider": {
+      "Host": "localhost",
+      "Port": 8500,
+      "Type": "Consul"
+    }
+  }
 }
